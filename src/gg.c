@@ -10,13 +10,7 @@ SDL_GLContext *gg_gl_ctx = NULL;
 void gg_init(gg_config_t cfg) {
     // config ZII checks
     if (cfg.window_name == (const char *)0)
-        cfg.window_name = "ghh_gl project";
-
-    if (!cfg.window_width)
-        cfg.window_width = 640;
-
-    if (!cfg.window_height)
-        cfg.window_height = 480;
+        cfg.window_name = "ghh_gl app";
 
     GG_ASSERT(
         SDL_WasInit(SDL_INIT_EVERYTHING) & SDL_INIT_VIDEO,
@@ -30,9 +24,6 @@ void gg_init(gg_config_t cfg) {
         cfg.window_width, cfg.window_height,
         SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE
     ));
-
-    if (cfg.maximize)
-        SDL_MaximizeWindow(gg_window);
 
     // create gl ctx
     SDL_GL_SetAttribute(
@@ -58,10 +49,31 @@ void gg_init(gg_config_t cfg) {
         GL(glEnable(GL_DEPTH_TEST));
         GL(glDepthFunc(GL_LESS));
     }
+
+    // window sizing
+    if (cfg.maximize) {
+        SDL_MaximizeWindow(gg_window);
+    } else {
+        SDL_SetWindowSize(
+            gg_window,
+            cfg.window_width ? cfg.window_width : 640,
+            cfg.window_height ? cfg.window_height : 480
+        );
+    }
+
+    gg_on_resize();
 }
 
 void gg_quit(void) {
     SDL_GL_DeleteContext(gg_gl_ctx);
 
     SDL_DestroyWindow(gg_window);
+}
+
+void gg_on_resize(void) {
+    int draw_width, draw_height;
+
+    SDL_GL_GetDrawableSize(gg_window, &draw_width, &draw_height);
+
+    GL(glViewport(0, 0, draw_width, draw_height));
 }
