@@ -2,10 +2,13 @@
 #include <stdint.h>
 
 #include "gg.h"
+#include "events.h"
 #include "util.h"
 
 SDL_Window *gg_window = NULL;
 SDL_GLContext *gg_gl_ctx = NULL;
+
+void gg_on_resize(SDL_Event *);
 
 // initialize and configure an SDL2 window and OpenGL context
 void gg_init(gg_config_t cfg) {
@@ -13,8 +16,10 @@ void gg_init(gg_config_t cfg) {
     if (cfg.window_name == (const char *)0)
         cfg.window_name = "ghh_gl app";
 
+    uint32_t subsystems = SDL_WasInit(SDL_INIT_EVERYTHING);
+
     GG_ASSERT(
-        SDL_WasInit(SDL_INIT_EVERYTHING) & SDL_INIT_VIDEO,
+        (subsystems & SDL_INIT_VIDEO) && (subsystems & SDL_INIT_EVENTS),
         "SDL must be initialized before ghh_gl.\n"
     );
 
@@ -58,21 +63,27 @@ void gg_init(gg_config_t cfg) {
         cfg.window_height ? cfg.window_height : 480
     );
 
-    gg_on_resize();
+    gg_on_resize(NULL);
+
+    // initialize event system
+    gg_events_init();
+
+    gg_events_map(SDL_WINDOWEVENT, SDL_WINDOWEVENT_SIZE_CHANGED, gg_on_resize);
 }
 
 void gg_quit(void) {
-    SDL_GL_DeleteContext(gg_gl_ctx);
+    gg_events_quit();
 
+    SDL_GL_DeleteContext(gg_gl_ctx);
     SDL_DestroyWindow(gg_window);
 }
 
-void gg_on_resize(void) {
-    int draw_width, draw_height;
+void gg_on_resize(SDL_Event *event) {
+    int width, height;
 
-    SDL_GL_GetDrawableSize(gg_window, &draw_width, &draw_height);
+    SDL_GetWindowSize(gg_window, &width, &height);
 
-    printf("draw size: %d %d\n", draw_width, draw_height);
+    printf("resizing, new window size: %d %d\n", width, height);
 
-    GL(glViewport(0, 0, draw_width, draw_height));
+    GL(glViewport(0, 0, width, height));
 }

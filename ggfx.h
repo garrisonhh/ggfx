@@ -28,11 +28,11 @@ planned features:
 
 #include "glad/glad.h"
 #include "src/gg.h"
-#include "src/event.h"
+#include "src/events.h"
 
 #ifdef GGFX_IMPL
 #include "src/gg.c"
-#include "src/event.c"
+#include "src/events.c"
 #endif
 
 #endif

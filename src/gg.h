@@ -26,6 +26,4 @@ void gg_quit(void);
 
 static inline void gg_flip(void) { SDL_GL_SwapWindow(gg_window); }
 
-void gg_on_resize(void);
-
 #endif
