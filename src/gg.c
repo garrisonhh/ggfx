@@ -7,6 +7,7 @@
 SDL_Window *gg_window = NULL;
 SDL_GLContext *gg_gl_ctx = NULL;
 
+// initialize and configure an SDL2 window and OpenGL context
 void gg_init(gg_config_t cfg) {
     // config ZII checks
     if (cfg.window_name == (const char *)0)
@@ -50,16 +51,12 @@ void gg_init(gg_config_t cfg) {
         GL(glDepthFunc(GL_LESS));
     }
 
-    // window sizing
-    if (cfg.maximize) {
-        SDL_MaximizeWindow(gg_window);
-    } else {
-        SDL_SetWindowSize(
-            gg_window,
-            cfg.window_width ? cfg.window_width : 640,
-            cfg.window_height ? cfg.window_height : 480
-        );
-    }
+    // initial window sizing
+    SDL_SetWindowSize(
+        gg_window,
+        cfg.window_width ? cfg.window_width : 640,
+        cfg.window_height ? cfg.window_height : 480
+    );
 
     gg_on_resize();
 }
@@ -74,6 +71,8 @@ void gg_on_resize(void) {
     int draw_width, draw_height;
 
     SDL_GL_GetDrawableSize(gg_window, &draw_width, &draw_height);
+
+    printf("draw size: %d %d\n", draw_width, draw_height);
 
     GL(glViewport(0, 0, draw_width, draw_height));
 }

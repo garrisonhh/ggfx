@@ -1,6 +1,11 @@
 #ifndef GG_H
 #define GG_H
 
+/*
+ * gg.* provides initialization and configuration functions, and manages global
+ * variables like the SDL_Window and SDL_GLContext.
+ */
+
 #include <SDL2/SDL.h>
 
 // touch sparingly, write functions for usage
@@ -12,7 +17,6 @@ typedef struct gg_config {
     const char *window_name;
     int window_width, window_height;
 
-    unsigned maximize: 1;
     unsigned disable_vsync: 1;
     unsigned enable_depth: 1;
 } gg_config_t;
