@@ -9,11 +9,10 @@
 
 typedef void (*gg_event_hook_t)(SDL_Event *);
 
-void gg_events_init(void);
-void gg_events_quit(void);
+// adds a hook which will be called whenever the specified event type appears
+void gg_events_hook(SDL_EventType, gg_event_hook_t);
 
-void gg_events_map(SDL_EventType base_type, uint32_t sub_type, gg_event_hook_t);
-
+// polls SDL events
 void gg_events_process(void);
 
 #endif

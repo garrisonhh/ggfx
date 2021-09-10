@@ -8,19 +8,20 @@
 SDL_Window *gg_window = NULL;
 SDL_GLContext *gg_gl_ctx = NULL;
 
-void gg_on_resize(SDL_Event *);
+static void gg_on_resize(void);
+void gg_on_windowevent(SDL_Event *);
 
 // initialize and configure an SDL2 window and OpenGL context
 void gg_init(gg_config_t cfg) {
     // config ZII checks
     if (cfg.window_name == (const char *)0)
-        cfg.window_name = "ghh_gl app";
+        cfg.window_name = "ggfx app";
 
     uint32_t subsystems = SDL_WasInit(SDL_INIT_EVERYTHING);
 
     GG_ASSERT(
         (subsystems & SDL_INIT_VIDEO) && (subsystems & SDL_INIT_EVENTS),
-        "SDL must be initialized before ghh_gl.\n"
+        "SDL must be initialized before ggfx.\n"
     );
 
     // create window
@@ -63,27 +64,31 @@ void gg_init(gg_config_t cfg) {
         cfg.window_height ? cfg.window_height : 480
     );
 
-    gg_on_resize(NULL);
+    gg_on_resize();
 
-    // initialize event system
-    gg_events_init();
-
-    gg_events_map(SDL_WINDOWEVENT, SDL_WINDOWEVENT_SIZE_CHANGED, gg_on_resize);
+    // default events
+    gg_events_hook(SDL_WINDOWEVENT, gg_on_windowevent);
 }
 
 void gg_quit(void) {
-    gg_events_quit();
-
     SDL_GL_DeleteContext(gg_gl_ctx);
     SDL_DestroyWindow(gg_window);
 }
 
-void gg_on_resize(SDL_Event *event) {
+static void gg_on_resize(void) {
     int width, height;
 
     SDL_GetWindowSize(gg_window, &width, &height);
 
-    printf("resizing, new window size: %d %d\n", width, height);
-
     GL(glViewport(0, 0, width, height));
+}
+
+void gg_on_windowevent(SDL_Event *event) {
+    switch (event->window.event) {
+    case SDL_WINDOWEVENT_SIZE_CHANGED:
+        gg_on_resize();
+        break;
+    default:
+        break;
+    }
 }

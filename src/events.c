@@ -1,53 +1,51 @@
+#include <stdbool.h>
 #include <libghh/ghh.h>
 
 #include "events.h"
 
 typedef struct gg_event {
-    SDL_EventType base_type;
-    uint32_t sub_type;
+    SDL_EventType type; // 0 (aka SDL_FIRSTEVENT) if unmapped
+    gg_event_hook_t hook;
 } gg_event_t;
 
-static hmap_t gg_events; // map of gg_event => gg_event_hook
+#define GG_NUM_EVENTS (256)
+static gg_event_t gg_events[GG_NUM_EVENTS];
 
-void gg_events_init(void) {
-    // ensure struct packing won't break hashing
-    gg_event_t test_ev;
+// adds an event hook mapping
+void gg_events_hook(SDL_EventType event_type, gg_event_hook_t hook) {
+    size_t index = hash_any(event_type) % GG_NUM_EVENTS;
 
-    if (sizeof(test_ev) != sizeof(test_ev.base_type) + sizeof(test_ev.sub_type))
-        GG_ERROR("gg_event_t packing failed.");
+    // it's impossible to register 256 SDL_EventTypes, so this won't break
+    while (gg_events[index].type)
+        index = (index + 1) % GG_NUM_EVENTS;
 
-    hmap_make(&gg_events);
+    gg_events[index] = (gg_event_t){event_type, hook};
 }
 
-void gg_events_quit(void) {
-    hmap_kill(&gg_events);
+// retrieves an event hook mapping
+static gg_event_hook_t gg_events_get_hook(SDL_EventType event_type) {
+    size_t index = hash_any(event_type) % GG_NUM_EVENTS;
+
+    while (gg_events[index].type) {
+        if (gg_events[index].type == event_type)
+            return gg_events[index].hook;
+
+        index = (index + 1) % GG_NUM_EVENTS;
+    }
+
+    return NULL;
 }
 
-void gg_events_map(
-    SDL_EventType base_type, uint32_t sub_type, gg_event_hook_t hook
-) {
-    gg_event_t gg_event = {
-        .base_type = base_type,
-        .sub_type = sub_type
-    };
-
-    hmap_put(&gg_events, gg_event, hook);
-}
-
+// polls events and calls hooks
 void gg_events_process(void) {
     SDL_Event event;
 
     while (SDL_PollEvent(&event)) {
-        // TODO REMOVE THIS
+        // use atexit() to define an exit function
         if (event.type == SDL_QUIT)
             exit(0);
 
-        gg_event_t gg_event = {
-            .base_type = event.type,
-            .sub_type = event.common.type
-        };
-
-        gg_event_hook_t hook = hmap_get(&gg_events, gg_event);
+        gg_event_hook_t hook = gg_events_get_hook(event.type);
 
         if (hook)
             hook(&event);
