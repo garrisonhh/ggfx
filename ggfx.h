@@ -9,12 +9,10 @@ on overhead.
 
 unlike many header-only libraries, ggfx does rely on some dependencies:
 - SDL2 linked so that #include <SDL2/SDL.h> works
-- libghh linked so that #include <libghh/ghh.h> works
-  - also expects GHH_IMPL is defined somewhere else
+- libghh linked so that #include <libghh/ghh.h> works (and is IMPL'd)
 
 planned features:
 - minimal programmer memory management
-- an event management system to remove SDL2 boilerplate
 - shaders
   - automatic batching
 - texture atlases
@@ -28,11 +26,12 @@ planned features:
 
 #include "glad/glad.h"
 #include "src/gg.h"
-#include "src/events.h"
+#include "src/shaders.h"
 
 #ifdef GGFX_IMPL
 #include "src/gg.c"
-#include "src/events.c"
+#include "src/shaders.c"
+#include "src/util.c"
 #endif
 
 #endif

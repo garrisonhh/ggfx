@@ -3,6 +3,9 @@
 
 #include <stdio.h>
 
+/*
+ * errors and debugging
+ */
 #define GG_ERROR(...)\
     do {\
         fprintf(stderr, "GG ERROR at %s:%d\n", __FILE__, __LINE__);\
@@ -40,6 +43,16 @@ static inline void gg_check_error() {
 #endif
 
 // SDL error macro
-#define GG_SDL_CHECK(thing) do { if (!(thing)) GG_ERROR(SDL_GetError()); } while (0)
+#define GG_SDL(thing) do { if (!(thing)) GG_ERROR(SDL_GetError()); } while (0)
+
+/*
+ * I/O + string bullshit
+ */
+char *gg_load_file(const char *filename, size_t *out_len); // malloc'd string
+
+static inline void gg_strcpy(char *dst, const char *src) {
+    while ((*dst++ = *src++))
+        ;
+}
 
 #endif
