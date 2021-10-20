@@ -3,7 +3,9 @@
 
 #include <stddef.h>
 
-#include "gg.h"
+/*
+ * shaders.* is a minimal shader loading API
+ */
 
 #define GG_SHADER_TYPES() \
 	X(GG_SHADER_VERT, GL_VERTEX_SHADER)\

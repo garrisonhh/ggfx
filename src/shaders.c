@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 #include "shaders.h"
 #include "util.h"
@@ -23,6 +24,12 @@ static gg_program_t programs[GG_MAX_PROGRAMS] = {0};
 static size_t num_shaders = 0, num_programs = 0;
 
 static gg_shader_t *load_shader(gg_shader_cfg_t *cfg) {
+    GG_ASSERT(
+        num_shaders < GG_MAX_SHADERS,
+        "ran out of shader space, #define GG_MAX_SHADERS with something "
+        "larger.\n"
+    );
+
     gg_shader_t *shader = &shaders[num_shaders++];
 
     // load source from file
@@ -79,6 +86,23 @@ static void check_program(gg_program_t *program, GLuint param) {
 gg_program_t *gg_shaders_load(
     const char *name, gg_shader_cfg_t *configs, size_t num_shaders
 ) {
+    GG_ASSERT(
+        num_programs < GG_MAX_PROGRAMS,
+        "ran out of shader program space, #define GG_MAX_PROGRAMS with "
+        "something larger.\n"
+    );
+
+#ifdef DEBUG
+    bool types[GG_NUM_SHADER_TYPES];
+
+    for (size_t i = 0; i < num_shaders; ++i) {
+        if (types[configs[i].type])
+            GG_ERROR("program \"%s\" has a repeated shader type.\n", name);
+        else
+            types[configs[i].type] = true;
+    }
+#endif
+
     gg_program_t *program = &programs[num_programs++];
 
     gg_strcpy(program->name, name);

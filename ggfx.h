@@ -27,10 +27,12 @@ planned features:
 #include "glad/glad.h"
 #include "src/gg.h"
 #include "src/shaders.h"
+#include "src/textures.h"
 
 #ifdef GGFX_IMPL
 #include "src/gg.c"
 #include "src/shaders.c"
+#include "src/textures.c"
 #include "src/util.c"
 #endif
 
