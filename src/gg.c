@@ -1,8 +1,11 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-#include "gg.h"
-#include "util.h"
+#include "../ggfx.h"
+
+GLuint gg_bound_fbo = 0;
+v2 gg_bound_fbo_size;
+v2 gg_window_size;
 
 SDL_Window *gg_window = NULL;
 SDL_GLContext *gg_gl_ctx = NULL;
@@ -76,12 +79,27 @@ void gg_quit(void) {
     SDL_DestroyWindow(gg_window);
 }
 
+void gg__set_bound_fbo(GLuint fbo, v2 size) {
+    gg_bound_fbo = fbo;
+    gg_bound_fbo_size = size;
+}
+
+void gg__reset_bound_fbo(void) {
+    gg_bound_fbo = 0;
+    gg_bound_fbo_size = gg_window_size;
+}
+
 static void on_resize(void) {
     int width, height;
 
     SDL_GetWindowSize(gg_window, &width, &height);
 
     GL(glViewport(0, 0, width, height));
+
+    gg_window_size = v2_(width, height);
+
+    if (!gg_bound_fbo)
+        gg_bound_fbo_size = gg_window_size;
 }
 
 // this function dispatches internal event callbacks

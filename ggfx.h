@@ -28,6 +28,7 @@ planned features:
 #include "src/gg.h"
 #include "src/shaders.h"
 #include "src/textures.h"
+#include "src/util.h"
 
 #ifdef GGFX_IMPL
 #include "src/gg.c"

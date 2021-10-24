@@ -4,6 +4,16 @@
 #include <stdio.h>
 
 /*
+ * common macros
+ */
+
+#define GG_MAX(a, b) ((a) > (b) ? (a) : (b))
+#define GG_MIN(a, b) ((a) < (b) ? (a) : (b))
+#define GG_ARR_SIZE(arr) (sizeof(arr) / sizeof(arr[0]))
+#define GG_SWAP_XOR(a, b) ((a) ^= (b) ^= (a) ^= (b))
+#define GG_SWAP_TMP(a, b, tmp) do { tmp = a; a = b; b = tmp; } while (0)
+
+/*
  * errors and debugging
  */
 #define GG_ERROR(...)\

@@ -1,25 +1,54 @@
 #ifndef GG_TEXTURES_H
 #define GG_TEXTURES_H
 
+#include <stddef.h>
+#include "../gglm.h"
+
+#include "gg.h"
+#include "util.h"
+
 typedef struct gg_texture {
     GLuint handle;
     int width, height;
 } gg_texture_t;
 
-void texture_make(gg_texture_t *tex, int width, int height); // empty
-void texture_load(gg_texture_t *tex, const char *filename); // from file
-static inline void texture_kill(gg_texture_t *tex) {
-    GL(glDeleteTextures(tex->handle));
+typedef struct gg_framebuf {
+    GLuint handle;
+    gg_texture_t *tex;
+} gg_framebuf_t;
+
+void gg_texture_make(gg_texture_t *, int width, int height); // make empty
+void gg_texture_load(gg_texture_t *, const char *filename); // load from file
+static inline void gg_texture_kill(gg_texture_t *tex) {
+    GL(glDeleteTextures(1, &tex->handle));
 }
 
-// bind to one of GL_TEXTURE0 to 31.
-void texture_bind(gg_texture_t *tex, int unit);
-static inline void texture_unbind(void) { GL(glBindTexture(GL_TEXTURE_2D, 0)); }
+// bind to one of GL_TEXTURE0 to 31
+void gg_texture_bind(gg_texture_t *, int unit);
+static inline void gg_texture_unbind(void) {
+    GL(glBindTexture(GL_TEXTURE_2D, 0));
+}
 
-// submit an uninitialized texture to fill and a list of loaded textures.
-// once called you can safely kill all textures in the list
-void texture_fill_atlas(
-    gg_texture_t *atlas, gg_texture_t *textures, size_t num_textures
-);
+void gg_framebuf_make(gg_framebuf_t *, gg_texture_t *tex);
+static inline void gg_framebuf_kill(gg_framebuf_t *fb) {
+    GL(glDeleteFramebuffers(1, &fb->handle));
+}
+
+static inline void gg_framebuf_bind(gg_framebuf_t *fb) {
+    GL(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fb->handle));
+    gg__set_bound_fbo(fb->handle, v2_(fb->tex->width, fb->tex->height));
+}
+static inline void gg_framebuf_unbind(void) {
+    GL(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0));
+    gg__reset_bound_fbo();
+}
+void gg_framebuf_blit(gg_framebuf_t *, v2 pos); // draws to current draw fbo
+
+// pass in an uninitialized (!!) texture to become an atlas
+void gg_atlas_generate(gg_texture_t *, const char **images, size_t num_images);
+
+/*
+ * TODO sprites, spritesheets, animations
+ */
 
 #endif

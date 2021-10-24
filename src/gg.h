@@ -3,12 +3,16 @@
 
 /*
  * gg.* provides initialization and configuration functions, and manages global
- * variables like the SDL_Window and SDL_GLContext.
+ * state.
  */
 
 #include <stdbool.h>
 #include <SDL2/SDL.h>
+#include "../gglm.h"
 
+extern GLuint gg_bound_fbo;
+extern v2 gg_bound_fbo_size;
+extern v2 gg_window_size;
 extern SDL_Window *gg_window;
 extern SDL_GLContext *gg_gl_ctx;
 
@@ -24,6 +28,11 @@ typedef struct gg_config {
 
 void gg_init(gg_config_t);
 void gg_quit(void);
+
+// framebuffer functionality is done through texture.*, this is for integration
+// with the global state
+void gg__set_bound_fbo(GLuint fbo, v2 size);
+void gg__reset_bound_fbo(void);
 
 static inline void gg_flip(void) { SDL_GL_SwapWindow(gg_window); }
 
