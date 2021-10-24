@@ -3,9 +3,8 @@
 
 #include <stddef.h>
 
-/*
- * shaders.* is a minimal shader loading API
- */
+#include "../ggfx.h"
+#include "util.h"
 
 #define GG_SHADER_TYPES() \
 	X(GG_SHADER_VERT, GL_VERTEX_SHADER)\
@@ -38,9 +37,13 @@ typedef struct gg_program {
     GLuint handle;
 } gg_program_t;
 
-gg_program_t *gg_shaders_load(
+gg_program_t *gg_program_load(
     const char *name, gg_shader_cfg_t *shaders, size_t num_shaders
 );
+
+static inline void gg_program_bind(gg_program_t *program) {
+    GL(glUseProgram(program->handle));
+}
 
 #endif
 

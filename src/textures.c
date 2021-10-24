@@ -99,17 +99,13 @@ void gg_framebuf_blit(gg_framebuf_t *fb, v2 pos) {
 #define GG_ATLAS_MAX_IMAGES 128
 #endif
 
-typedef struct gg_atlas_rect { v2 pos, size; } gg_atlas_rect_t;
-typedef struct gg_atlas_final { v2 pos; gg_texture_t *tex; } gg_atlas_final_t;
-
 typedef struct gg_atlas_ctx {
-    gg_atlas_rect_t tex_heap[GG_ATLAS_MAX_IMAGES];
     gg_texture_t textures[GG_ATLAS_MAX_IMAGES];
-    gg_atlas_final_t tex_final[GG_ATLAS_MAX_IMAGES];
-    size_t heap_size, num_textures, num_final;
+    gg_atexture_t tex_heap[GG_ATLAS_MAX_IMAGES];
+    size_t heap_size;
 } gg_atlas_ctx_t;
 
-static inline float atlas_score(gg_atlas_rect_t rect) {
+static inline float atlas_score(gg_atexture_t rect) {
     return GG_MAX(rect.pos.x, rect.pos.y);
 }
 
@@ -128,7 +124,7 @@ static void atlas_heapify_topdown(gg_atlas_ctx_t *ctx, size_t index) {
         best = right;
 
     if (best != index) {
-        gg_atlas_rect_t tmp;
+        gg_atexture_t tmp;
         GG_SWAP_TMP(ctx->tex_heap[index], ctx->tex_heap[best], tmp);
 
         atlas_heapify_topdown(ctx, best);
@@ -142,7 +138,7 @@ static void atlas_heapify_bottomup(gg_atlas_ctx_t *ctx, size_t index) {
 
         if (atlas_score(ctx->tex_heap[index])
             < atlas_score(ctx->tex_heap[parent])) {
-            gg_atlas_rect_t tmp;
+            gg_atexture_t tmp;
             GG_SWAP_TMP(ctx->tex_heap[index], ctx->tex_heap[parent], tmp);
 
             atlas_heapify_topdown(ctx, parent);
@@ -157,52 +153,39 @@ static inline void atlas_del(gg_atlas_ctx_t *ctx, size_t index) {
         atlas_heapify_topdown(ctx, index);
 }
 
-static inline void atlas_add(gg_atlas_ctx_t *ctx, gg_atlas_rect_t rect) {
+static inline void atlas_add(gg_atlas_ctx_t *ctx, gg_atexture_t rect) {
     ctx->tex_heap[ctx->heap_size] = rect;
     atlas_heapify_bottomup(ctx, ctx->heap_size++);
 }
 
-// for initial texture sort
-int gg_atlas_texture_cmp(const void *a, const void *b) {
-    const gg_texture_t *t1 = a, *t2 = b;
-
-    return GG_MAX(t2->width, t2->height) - GG_MAX(t1->width, t1->height);
-}
-
 void gg_atlas_generate(
-    gg_texture_t *atlas, const char **image_paths, size_t num_images
+    gg_texture_t *atlas, const char **image_paths, size_t num_images,
+    gg_atexture_t *out_atextures
 ) {
     GG_ASSERT(
         num_images <= GG_ATLAS_MAX_IMAGES,
         "submitted too many images to gg_atlas_generate. please #define "
         "GG_ATLAS_MAX_IMAGES with a higher value.\n"
     );
+    GG_ASSERT(out_atextures, "atlas_generate requires the out parameter.\n");
 
     // init + load
     gg_atlas_ctx_t ctx;
 
-    ctx.num_final = 0;
-    ctx.num_textures = num_images;
-
     for (size_t i = 0; i < num_images; ++i)
         gg_texture_load(&ctx.textures[i], image_paths[i]);
 
-    // sorting by max dimension (not necessary, but gives better results)
-    qsort(
-        ctx.textures, ctx.num_textures, sizeof(*ctx.textures),
-        gg_atlas_texture_cmp
-    );
-
     // generate data for packed rects
     GLint max_tex_size;
-    GL(glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max_tex_size));
-
+    size_t num_final = 0;
     v2 atlas_size = v2_ZERO;
 
-    ctx.tex_heap[0] = (gg_atlas_rect_t){ .size = v2_fill(max_tex_size) };
+    GL(glGetIntegerv(GL_MAX_TEXTURE_SIZE, &max_tex_size));
+
+    ctx.tex_heap[0] = (gg_atexture_t){ .size = v2_fill(max_tex_size) };
     ctx.heap_size = 1;
 
-    for (size_t i = 0; i < ctx.num_textures; ++i) {
+    for (size_t i = 0; i < num_images; ++i) {
         gg_texture_t *tex = &ctx.textures[i];
 
         // find first rect in heap that fits tex
@@ -222,17 +205,20 @@ void gg_atlas_generate(
             GG_ERROR("ran out of atlas space! must use a second atlas.\n");
 
         // finalize rect
-        gg_atlas_rect_t old = ctx.tex_heap[best_fit];
+        gg_atexture_t old = ctx.tex_heap[best_fit];
 
         atlas_del(&ctx, best_fit);
 
-        ctx.tex_final[ctx.num_final++] = (gg_atlas_final_t){ old.pos, tex };
+        out_atextures[num_final++] = (gg_atexture_t){
+            .pos = old.pos,
+            .size = v2_(tex->width, tex->height)
+        };
 
         atlas_size.x = GG_MAX(atlas_size.x, old.pos.x + tex->width);
         atlas_size.y = GG_MAX(atlas_size.y, old.pos.y + tex->height);
 
         // sort back in new rects created with the leftovers of the old rect
-        gg_atlas_rect_t up, right;
+        gg_atexture_t up, right;
         float up_margin = old.size.y - tex->height;
         float right_margin = old.size.x - tex->width;
 
@@ -262,18 +248,16 @@ void gg_atlas_generate(
     gg_framebuf_make(&atlas_fb, atlas);
     gg_framebuf_bind(&atlas_fb);
 
-    for (size_t i = 0; i < ctx.num_final; ++i) {
-        gg_atlas_final_t *final = &ctx.tex_final[i];
-
-        gg_framebuf_make(&tex_fb, final->tex);
-        gg_framebuf_blit(&tex_fb, final->pos);
+    for (size_t i = 0; i < num_images; ++i) {
+        gg_framebuf_make(&tex_fb, &ctx.textures[i]);
+        gg_framebuf_blit(&tex_fb, out_atextures[i].pos);
         gg_framebuf_kill(&tex_fb);
     }
 
     gg_framebuf_unbind();
 
     // clean up
-    for (size_t i = 0; i < ctx.num_textures; ++i)
+    for (size_t i = 0; i < num_images; ++i)
         gg_texture_kill(&ctx.textures[i]);
 }
 

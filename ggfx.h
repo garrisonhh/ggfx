@@ -28,12 +28,14 @@ planned features:
 #include "src/gg.h"
 #include "src/shaders.h"
 #include "src/textures.h"
+#include "src/2d.h"
 #include "src/util.h"
 
 #ifdef GGFX_IMPL
 #include "src/gg.c"
 #include "src/shaders.c"
 #include "src/textures.c"
+#include "src/2d.c"
 #include "src/util.c"
 #endif
 

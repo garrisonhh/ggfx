@@ -17,6 +17,10 @@ typedef struct gg_framebuf {
     gg_texture_t *tex;
 } gg_framebuf_t;
 
+typedef struct gg_atexture {
+    v2 pos, size;
+} gg_atexture_t;
+
 void gg_texture_make(gg_texture_t *, int width, int height); // make empty
 void gg_texture_load(gg_texture_t *, const char *filename); // load from file
 static inline void gg_texture_kill(gg_texture_t *tex) {
@@ -45,7 +49,10 @@ static inline void gg_framebuf_unbind(void) {
 void gg_framebuf_blit(gg_framebuf_t *, v2 pos); // draws to current draw fbo
 
 // pass in an uninitialized (!!) texture to become an atlas
-void gg_atlas_generate(gg_texture_t *, const char **images, size_t num_images);
+void gg_atlas_generate(
+    gg_texture_t *atlas, const char **images, size_t num_images,
+    gg_atexture_t *out_atextures
+);
 
 /*
  * TODO sprites, spritesheets, animations

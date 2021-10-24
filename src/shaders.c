@@ -2,8 +2,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-#include "shaders.h"
-#include "util.h"
+#include "../ggfx.h"
 
 #ifndef GG_MAX_SHADERS
 #define GG_MAX_SHADERS 128
@@ -54,7 +53,10 @@ static gg_shader_t *load_shader(gg_shader_cfg_t *cfg) {
         GL(glGetShaderInfoLog(shader->handle, sizeof(err_buf), NULL, err_buf));
 
         // TODO do some introspection on source string maybe?
-        fprintf(stderr, "GG ERROR in compiling shader:\n%s", err_buf);
+        fprintf(
+            stderr, "GG ERROR in compiling shader at \"%s\":\n%s",
+            cfg->filename, err_buf
+        );
         exit(-1);
     }
 
@@ -83,7 +85,7 @@ static void check_program(gg_program_t *program, GLuint param) {
     }
 }
 
-gg_program_t *gg_shaders_load(
+gg_program_t *gg_program_load(
     const char *name, gg_shader_cfg_t *configs, size_t num_shaders
 ) {
     GG_ASSERT(
@@ -93,7 +95,7 @@ gg_program_t *gg_shaders_load(
     );
 
 #ifdef DEBUG
-    bool types[GG_NUM_SHADER_TYPES];
+    bool types[GG_NUM_SHADER_TYPES] = {0};
 
     for (size_t i = 0; i < num_shaders; ++i) {
         if (types[configs[i].type])
