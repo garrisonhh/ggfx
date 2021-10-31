@@ -11,10 +11,13 @@ char *gg_load_file(const char *filename, size_t *out_len) {
     fseek(fp, 0, SEEK_END);
 
     size_t len = ftell(fp);
-    char *str = malloc(sizeof(*str) * len);
+    char *str = malloc(sizeof(*str) * len + 1);
 
+    rewind(fp);
     fread(str, sizeof(*str), len, fp);
     fclose(fp);
+
+    str[len] = '\0';
 
     if (out_len)
         *out_len = len;
