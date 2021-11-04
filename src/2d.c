@@ -24,21 +24,16 @@ static size_t gg2d_batch_idx = 0;
 void gg2d_init(
     const char **images, size_t num_images, gg_atexture_t *out_atextures
 ) {
-    // TODO pathing here ???
     gg_shader_cfg_t shader_cfg[] = {
-        { "lib/ggfx/res/2d_vert.glsl", GG_SHADER_VERT },
-        { "lib/ggfx/res/2d_frag.glsl", GG_SHADER_FRAG }
+        { "2d_vert.glsl", GG_SHADER_VERT },
+        { "2d_frag.glsl", GG_SHADER_FRAG }
     };
 
     gg2d_program = gg_program_load(
         "gg2d-blitter", shader_cfg, GG_ARR_SIZE(shader_cfg)
     );
-    GL(gg2d_loc_disp_size = glGetUniformLocation(
-        gg2d_program->handle, "disp_size"
-    ));
-    GL(gg2d_loc_atlas = glGetUniformLocation(
-        gg2d_program->handle, "atlas"
-    ));
+    gg2d_loc_disp_size = gg_program_uniform(gg2d_program, "disp_size");
+    gg2d_loc_atlas = gg_program_uniform(gg2d_program, "atlas");
 
     if (images)
         gg_atlas_generate(&gg2d_atlas, images, num_images, out_atextures);

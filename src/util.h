@@ -61,7 +61,7 @@ static inline void gg_check_error(const char *file, int line) {
 /*
  * I/O + string bullshit
  */
-char *gg_load_file(const char *filename, size_t *out_len); // malloc'd string
+char *gg_load_file(const char *resource, size_t *out_len); // malloc'd string
 
 static inline void gg_strcpy(char *dst, const char *src) {
     while ((*dst++ = *src++))
