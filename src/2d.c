@@ -10,7 +10,9 @@ static gg_texture_t gg2d_atlas;
 static gg_program_t *gg2d_program;
 
 static GLuint gg2d_vao, gg2d_vbos[GG2D_NUM_VBOS];
-static GLint gg2d_loc_disp_size;
+
+// uniform locations
+static GLint gg2d_loc_disp_size, gg2d_loc_atlas;
 
 static struct gg2d_batch {
     v2 src_pos[GG2D_BATCH_SIZE];
@@ -33,6 +35,9 @@ void gg2d_init(
     );
     GL(gg2d_loc_disp_size = glGetUniformLocation(
         gg2d_program->handle, "disp_size"
+    ));
+    GL(gg2d_loc_atlas = glGetUniformLocation(
+        gg2d_program->handle, "atlas"
     ));
 
     if (images)
@@ -63,11 +68,13 @@ void gg2d_blit(gg_atexture_t *atex, v2 pos) {
 
 void gg2d_draw(void) {
     gg_program_bind(gg2d_program);
+    gg_texture_bind(&gg2d_atlas, 0);
 
     GL(glBindVertexArray(gg2d_vao));
 
     // update uniforms
     GL(glUniform2fv(gg2d_loc_disp_size, 1, gg_window_size.ptr));
+    GL(glUniform1i(gg2d_loc_atlas, 0));
 
     // load everything to vertex buffers and draw
 #define GG2D_LOAD_BUFFER(vbo_idx, arr) do {\
@@ -89,6 +96,8 @@ void gg2d_draw(void) {
     ));
 
     // cleanup
+    gg_texture_unbind();
+
     for (size_t i = 0; i < GG2D_NUM_VBOS; ++i)
         GL(glDisableVertexAttribArray(i));
 

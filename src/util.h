@@ -33,9 +33,9 @@
 // checked automatically at runtime when DEBUG is defined.
 #ifdef DEBUG
 
-static inline void gg_check_error() {
+static inline void gg_check_error(const char *file, int line) {
     switch (glGetError()) {
-#define X(x) case x: GG_ERROR(#x "\n");
+#define X(x) case x: fprintf(stderr, "GG ERROR at %s:%d\n%s\n", file, line, #x);
     X(GL_INVALID_ENUM);
     X(GL_INVALID_VALUE);
     X(GL_INVALID_OPERATION);
@@ -47,7 +47,10 @@ static inline void gg_check_error() {
     }
 }
 
-#define GL(line) do { line; gg_check_error(); } while(0)
+#define GL(line) do {\
+    line;\
+    gg_check_error(__FILE__, __LINE__);\
+} while(0)
 #else
 #define GL(line) line
 #endif

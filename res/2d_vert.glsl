@@ -17,10 +17,11 @@ uniform vec2 disp_size;
 
 void main() {
     // pixel location form topleft
-    vec2 pos = src_pos + pix_size * quad[gl_VertexID];
+    vec2 pos = dst_pos + pix_size * quad[gl_VertexID];
 
     // pixel location -> opengl coords
     pos /= disp_size * 0.5;
+    pos -= vec2(1.0);
     pos.y = -pos.y;
 
     gl_Position = vec4(pos, 0.0, 1.0);
