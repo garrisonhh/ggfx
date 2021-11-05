@@ -60,7 +60,6 @@ void gg2d_blit(gg_atexture_t *atex, v2 pos) {
     ++gg2d_batch_idx;
 }
 
-
 void gg2d_draw(void) {
     gg_program_bind(gg2d_program);
     gg_texture_bind(&gg2d_atlas, 0);
@@ -71,13 +70,17 @@ void gg2d_draw(void) {
     GL(glUniform2fv(gg2d_loc_disp_size, 1, gg_window_size.ptr));
     GL(glUniform1i(gg2d_loc_atlas, 0));
 
-    // load everything to vertex buffers and draw
+    /*
+     * load everything to vertex buffers and draw
+     * vbo_idx serves double purpose in this macro of being the attribute
+     * location as well as the buffer index
+     */
 #define GG2D_LOAD_BUFFER(vbo_idx, arr) do {\
     GL(glBindBuffer(GL_ARRAY_BUFFER, gg2d_vbos[vbo_idx]));\
-    GL(glBufferData(GL_ARRAY_BUFFER, sizeof(arr), arr, GL_STREAM_DRAW));\
+    GL(glBufferData(GL_ARRAY_BUFFER, gg2d_batch_idx * sizeof(*arr), arr, GL_STREAM_DRAW));\
     GL(glEnableVertexAttribArray(vbo_idx));\
     GL(glVertexAttribPointer(vbo_idx, 2, GL_FLOAT, 0, 0, (void *)0));\
-    GL(glVertexAttribDivisor(vbo_idx, 4));\
+    GL(glVertexAttribDivisor(vbo_idx, 1));\
 } while (0)
 
     GG2D_LOAD_BUFFER(0, gg2d_batch.src_pos);
