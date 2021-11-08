@@ -19,6 +19,7 @@ typedef struct gg_framebuf {
 
 typedef struct gg_atexture {
     v2 pos, size;
+    v2 rel_pos, rel_size;
 } gg_atexture_t;
 
 void gg_texture_make(gg_texture_t *, int width, int height); // make empty
@@ -52,6 +53,11 @@ void gg_framebuf_blit(gg_framebuf_t *, v2 pos); // draws to current draw fbo
 void gg_atlas_generate(
     gg_texture_t *atlas, const char **images, size_t num_images,
     gg_atexture_t *out_atextures
+);
+
+// malloc'd array of atextures
+gg_atexture_t *gg_atexture_split(
+    gg_atexture_t *, size_t rows, size_t cols, bool row_major
 );
 
 /*

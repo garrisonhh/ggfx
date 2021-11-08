@@ -8,8 +8,9 @@ vec2 quad[4] = vec2[](
 );
 
 layout (location = 0) in vec2 src_pos;
-layout (location = 1) in vec2 dst_pos;
-layout (location = 2) in vec2 pix_size;
+layout (location = 1) in vec2 src_size;
+layout (location = 2) in vec2 dst_pos;
+layout (location = 3) in vec2 pix_size;
 
 out vec2 v_src_pos;
 
@@ -25,7 +26,7 @@ void main() {
     pos.y = -pos.y;
 
     gl_Position = vec4(pos, 0.0, 1.0);
-    
+
     // atlas quad position
-    v_src_pos = src_pos + pix_size * quad[gl_VertexID];
+    v_src_pos = src_pos + src_size * quad[gl_VertexID];
 }

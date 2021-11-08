@@ -240,6 +240,14 @@ void gg_atlas_generate(
             atlas_add(&ctx, right);
     }
 
+    // generate relative coordinates for atextures now that atlas size is known
+    for (size_t i = 0; i < num_images; ++i) {
+        gg_atexture_t *atex = &out_atextures[i];
+
+        atex->rel_pos = v2_div(atex->pos, atlas_size);
+        atex->rel_size = v2_div(atex->size, atlas_size);
+    }
+
     // blit textures
     gg_framebuf_t atlas_fb, tex_fb;
 
@@ -261,3 +269,28 @@ void gg_atlas_generate(
         gg_texture_kill(&ctx.textures[i]);
 }
 
+gg_atexture_t *gg_atexture_split(
+    gg_atexture_t *atex, size_t rows, size_t cols, bool row_major
+) {
+    v2 split_cell = v2_div(v2_fill(1.0), v2_(rows, cols));
+    gg_atexture_t *arr = malloc(rows * cols * sizeof(*arr));
+
+    for (size_t col = 0; col < cols; ++col) {
+        for (size_t row = 0; row < rows; ++row) {
+            v2 split_pos = v2_mul(v2_(row, col), split_cell);
+            size_t index = row_major ? row + col * rows : col + row * cols;
+
+            arr[index] = (gg_atexture_t){
+                .pos = v2_add(atex->pos, v2_mul(split_pos, atex->size)),
+                .size = v2_mul(split_cell, atex->size),
+                .rel_pos = v2_add(
+                    atex->rel_pos,
+                    v2_mul(split_pos, atex->rel_size)
+                ),
+                .rel_size = v2_mul(split_cell, atex->rel_size)
+            };
+        }
+    }
+
+    return arr;
+}

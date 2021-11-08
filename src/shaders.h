@@ -44,6 +44,9 @@ gg_program_t *gg_program_load(
 static inline void gg_program_bind(gg_program_t *program) {
     GL(glUseProgram(program->handle));
 }
+static inline void gg_program_unbind(void) {
+    GL(glUseProgram(0));
+}
 static inline GLint gg_program_uniform(gg_program_t *program, const char *name) {
     GLint loc;
     GL(loc = glGetUniformLocation(program->handle, name));

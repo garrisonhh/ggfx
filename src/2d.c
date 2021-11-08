@@ -1,10 +1,12 @@
 #include "2d.h"
 
+// batching ====================================================================
+
 #ifndef GG2D_BATCH_SIZE
-#define GG2D_BATCH_SIZE 65535
+#define GG2D_BATCH_SIZE 65536
 #endif
 
-#define GG2D_NUM_VBOS 3
+#define GG2D_NUM_VBOS 4
 
 static gg_texture_t gg2d_atlas;
 static gg_program_t *gg2d_program;
@@ -15,9 +17,8 @@ static GLuint gg2d_vao, gg2d_vbos[GG2D_NUM_VBOS];
 static GLint gg2d_loc_disp_size, gg2d_loc_atlas;
 
 static struct gg2d_batch {
-    v2 src_pos[GG2D_BATCH_SIZE];
-    v2 dst_pos[GG2D_BATCH_SIZE];
-    v2 pix_size[GG2D_BATCH_SIZE];
+    v2 src_pos[GG2D_BATCH_SIZE], src_size[GG2D_BATCH_SIZE];
+    v2 dst_pos[GG2D_BATCH_SIZE], pix_size[GG2D_BATCH_SIZE];
 } gg2d_batch;
 static size_t gg2d_batch_idx = 0;
 
@@ -53,11 +54,26 @@ void gg2d_blit(gg_atexture_t *atex, v2 pos) {
         "GG2D_BATCH_SIZE with a larger value.\n"
     );
 
-    gg2d_batch.src_pos[gg2d_batch_idx] = atex->pos;
+    gg2d_batch.src_pos[gg2d_batch_idx] = atex->rel_pos;
+    gg2d_batch.src_size[gg2d_batch_idx] = atex->rel_size;
     gg2d_batch.dst_pos[gg2d_batch_idx] = pos;
     gg2d_batch.pix_size[gg2d_batch_idx] = atex->size;
 
     ++gg2d_batch_idx;
+}
+
+/*
+ * vbo_idx serves double purpose in this function of being the attribute
+ * location as well as the buffer index
+ */
+static void gg2d_load_batch_buf(GLint vbo_idx, v2 *arr) {
+    GL(glBindBuffer(GL_ARRAY_BUFFER, gg2d_vbos[vbo_idx]));
+    GL(glBufferData(
+        GL_ARRAY_BUFFER, gg2d_batch_idx * sizeof(*arr), arr, GL_STREAM_DRAW
+    ));
+    GL(glEnableVertexAttribArray(vbo_idx));
+    GL(glVertexAttribPointer(vbo_idx, 2, GL_FLOAT, 0, 0, (void *)0));
+    GL(glVertexAttribDivisor(vbo_idx, 1));
 }
 
 void gg2d_draw(void) {
@@ -70,36 +86,25 @@ void gg2d_draw(void) {
     GL(glUniform2fv(gg2d_loc_disp_size, 1, gg_window_size.ptr));
     GL(glUniform1i(gg2d_loc_atlas, 0));
 
-    /*
-     * load everything to vertex buffers and draw
-     * vbo_idx serves double purpose in this macro of being the attribute
-     * location as well as the buffer index
-     */
-#define GG2D_LOAD_BUFFER(vbo_idx, arr) do {\
-    GL(glBindBuffer(GL_ARRAY_BUFFER, gg2d_vbos[vbo_idx]));\
-    GL(glBufferData(GL_ARRAY_BUFFER, gg2d_batch_idx * sizeof(*arr), arr, GL_STREAM_DRAW));\
-    GL(glEnableVertexAttribArray(vbo_idx));\
-    GL(glVertexAttribPointer(vbo_idx, 2, GL_FLOAT, 0, 0, (void *)0));\
-    GL(glVertexAttribDivisor(vbo_idx, 1));\
-} while (0)
+    // buffer everything and draw
+    gg2d_load_batch_buf(0, gg2d_batch.src_pos);
+    gg2d_load_batch_buf(1, gg2d_batch.src_size);
+    gg2d_load_batch_buf(2, gg2d_batch.dst_pos);
+    gg2d_load_batch_buf(3, gg2d_batch.pix_size);
 
-    GG2D_LOAD_BUFFER(0, gg2d_batch.src_pos);
-    GG2D_LOAD_BUFFER(1, gg2d_batch.dst_pos);
-    GG2D_LOAD_BUFFER(2, gg2d_batch.pix_size);
-
-#undef GG2D_LOAD_BUFFER
-
-    GL(glDrawArraysInstanced(
-        GL_TRIANGLE_STRIP, 0, 4, gg2d_batch_idx
-    ));
+    GL(glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, gg2d_batch_idx));
+    gg2d_batch_idx = 0;
 
     // cleanup
-    gg_texture_unbind();
-
     for (size_t i = 0; i < GG2D_NUM_VBOS; ++i)
         GL(glDisableVertexAttribArray(i));
 
     GL(glBindVertexArray(0));
 
-    gg2d_batch_idx = 0;
+    gg_texture_unbind();
+    gg_program_unbind();
 }
+
+// fonts =======================================================================
+
+// TODO
