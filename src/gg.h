@@ -7,6 +7,7 @@
  */
 
 #include <stdbool.h>
+#include <stdint.h>
 #include <SDL2/SDL.h>
 #include "../gglm.h"
 
@@ -19,7 +20,7 @@ extern SDL_GLContext *gg_gl_ctx;
 // init config uses ZII heavily, so options all have defaults if set to zero
 typedef struct gg_config {
     const char *window_name;
-    int window_width, window_height;
+    v2 window_size;
 
     unsigned maximize: 1;
     unsigned disable_vsync: 1;
@@ -33,6 +34,8 @@ void gg_quit(void);
 // with the global state
 void gg__set_bound_fbo(GLuint fbo, v2 size);
 void gg__reset_bound_fbo(void);
+
+void gg_clear(uint8_t r, uint8_t g, uint8_t b, uint8_t a);
 
 static inline void gg_flip(void) { SDL_GL_SwapWindow(gg_window); }
 

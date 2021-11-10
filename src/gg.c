@@ -10,6 +10,8 @@ v2 gg_window_size;
 SDL_Window *gg_window = NULL;
 SDL_GLContext *gg_gl_ctx = NULL;
 
+static GLbitfield gg_clear_bits = GL_COLOR_BUFFER_BIT;
+
 static void on_resize(void);
 
 // initialize and configure an SDL2 window and OpenGL context
@@ -28,9 +30,13 @@ void gg_init(gg_config_t cfg) {
     GG_SDL(gg_window = SDL_CreateWindow(
         cfg.window_name ? cfg.window_name : "ggfx app",
         SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-        cfg.window_width, cfg.window_height,
+        cfg.window_size.x ? (int)cfg.window_size.x : 640,
+        cfg.window_size.y ? (int)cfg.window_size.y : 480,
         SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE
     ));
+
+    if (cfg.maximize)
+        SDL_MaximizeWindow(gg_window);
 
     // create gl ctx
     SDL_GL_SetAttribute(
@@ -47,6 +53,7 @@ void gg_init(gg_config_t cfg) {
     /*
      * OpenGL config
      */
+    // opengl features
     if (!cfg.disable_vsync)
         if (SDL_GL_SetSwapInterval(-1) && SDL_GL_SetSwapInterval(1))
             GG_ERROR("unable to enable vsync.\n");
@@ -55,23 +62,16 @@ void gg_init(gg_config_t cfg) {
     GL(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
     if (cfg.enable_depth) {
+        gg_clear_bits |= GL_DEPTH_BUFFER_BIT;
+
         GL(glEnable(GL_DEPTH_TEST));
         GL(glDepthFunc(GL_LESS));
     }
 
-    // initial window sizing
-    // SetWindowSize called first regardless to prevent weirdness after moving a
-    // maximized window
-    SDL_SetWindowSize(
-        gg_window,
-        cfg.window_width ? cfg.window_width : 640,
-        cfg.window_height ? cfg.window_height : 480
-    );
-
-    if (cfg.maximize)
-        SDL_MaximizeWindow(gg_window);
-
+    // window sizing/resolution
     on_resize();
+
+    ;
 }
 
 void gg_quit(void) {
@@ -89,13 +89,19 @@ void gg__reset_bound_fbo(void) {
     gg_bound_fbo_size = gg_window_size;
 }
 
+void gg_clear(uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
+#define X(v) ((float)(v) / 255.0)
+    GL(glClearColor(X(r), X(g), X(b), X(a)));
+#undef X
+    GL(glClear(gg_clear_bits));
+}
+
 static void on_resize(void) {
     int width, height;
 
     SDL_GetWindowSize(gg_window, &width, &height);
 
     GL(glViewport(0, 0, width, height));
-
     gg_window_size = v2_(width, height);
 
     if (!gg_bound_fbo)

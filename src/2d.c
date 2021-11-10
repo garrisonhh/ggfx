@@ -83,7 +83,7 @@ void gg2d_draw(void) {
     GL(glBindVertexArray(gg2d_vao));
 
     // update uniforms
-    GL(glUniform2fv(gg2d_loc_disp_size, 1, gg_window_size.ptr));
+    GL(glUniform2fv(gg2d_loc_disp_size, 1, gg_bound_fbo_size.ptr));
     GL(glUniform1i(gg2d_loc_atlas, 0));
 
     // buffer everything and draw
