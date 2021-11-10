@@ -1,16 +1,20 @@
 #include <stdlib.h>
-#include <stdint.h>
+#include <stdbool.h>
 
 #include "../ggfx.h"
 
 GLuint gg_bound_fbo = 0;
-v2 gg_bound_fbo_size;
-v2 gg_window_size;
+v2 gg_window_size, gg_resolution;
+
+// static resolution vars
+static bool gg_static_resolution = false;
+static gg_texture_t gg_res_tex;
+static gg_framebuf_t gg_res_fb;
 
 SDL_Window *gg_window = NULL;
 SDL_GLContext *gg_gl_ctx = NULL;
 
-static GLbitfield gg_clear_bits = GL_COLOR_BUFFER_BIT;
+GLbitfield gg_buffer_bits = GL_COLOR_BUFFER_BIT;
 
 static void on_resize(void);
 
@@ -62,38 +66,84 @@ void gg_init(gg_config_t cfg) {
     GL(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
 
     if (cfg.enable_depth) {
-        gg_clear_bits |= GL_DEPTH_BUFFER_BIT;
+        gg_buffer_bits |= GL_DEPTH_BUFFER_BIT;
 
         GL(glEnable(GL_DEPTH_TEST));
         GL(glDepthFunc(GL_LESS));
     }
 
     // window sizing/resolution
-    on_resize();
+    if ((gg_static_resolution = cfg.resolution.x || cfg.resolution.y)) {
+        gg_texture_make(&gg_res_tex, v2_EXPAND(cfg.resolution));
+        gg_framebuf_make(&gg_res_fb, &gg_res_tex);
 
-    ;
+        gg__reset_bound_fbo();
+    }
+
+    on_resize();
 }
 
 void gg_quit(void) {
+    gg_framebuf_kill(&gg_res_fb);
+    gg_texture_kill(&gg_res_tex);
+
     SDL_GL_DeleteContext(gg_gl_ctx);
     SDL_DestroyWindow(gg_window);
 }
 
 void gg__set_bound_fbo(GLuint fbo, v2 size) {
     gg_bound_fbo = fbo;
-    gg_bound_fbo_size = size;
+    gg_resolution = size;
 }
 
 void gg__reset_bound_fbo(void) {
-    gg_bound_fbo = 0;
-    gg_bound_fbo_size = gg_window_size;
+    if (gg_static_resolution) {
+        gg_framebuf_bind(&gg_res_fb);
+    } else {
+        gg_bound_fbo = 0;
+        gg_resolution = gg_window_size;
+    }
 }
 
 void gg_clear(uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
 #define X(v) ((float)(v) / 255.0)
     GL(glClearColor(X(r), X(g), X(b), X(a)));
 #undef X
-    GL(glClear(gg_clear_bits));
+    GL(glClear(gg_buffer_bits));
+}
+
+void gg_flip(void) {
+    if (gg_static_resolution) {
+        GL(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0));
+        gg_bound_fbo = 0;
+
+        // scale statically sized framebuffer
+        v2 dst_size = gg_window_size;
+        v2 ratio = v2_div(dst_size, gg_resolution);
+
+        ratio = v2_divs(ratio, GG_MIN(ratio.x, ratio.y));
+        dst_size = v2_div(dst_size, ratio);
+        dst_size = v2_MAP(dst_size, floor);
+
+        // find centered position for framebuffer
+        v2 dst_pos = v2_ZERO;
+
+        if (dst_size.x < gg_window_size.x)
+            dst_pos.x += (gg_window_size.x - dst_size.x) / 2;
+
+        if (dst_size.y < gg_window_size.y)
+            dst_pos.y += (gg_window_size.y - dst_size.y) / 2;
+
+        // blit and flip
+        gg_clear(0x0, 0x0, 0x0, 0xFF);
+        gg_framebuf_blit_scaled(&gg_res_fb, dst_pos, dst_size);
+
+        SDL_GL_SwapWindow(gg_window);
+
+        gg__reset_bound_fbo();
+    } else {
+        SDL_GL_SwapWindow(gg_window);
+    }
 }
 
 static void on_resize(void) {
@@ -101,11 +151,14 @@ static void on_resize(void) {
 
     SDL_GetWindowSize(gg_window, &width, &height);
 
-    GL(glViewport(0, 0, width, height));
     gg_window_size = v2_(width, height);
 
-    if (!gg_bound_fbo)
-        gg_bound_fbo_size = gg_window_size;
+    if (gg_bound_fbo) {
+        GL(glViewport(0, 0, v2_EXPAND(gg_resolution)));
+    } else {
+        gg_resolution = gg_window_size;
+        GL(glViewport(0, 0, width, height));
+    }
 }
 
 // this function dispatches internal event callbacks

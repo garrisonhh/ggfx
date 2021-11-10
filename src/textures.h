@@ -47,7 +47,12 @@ static inline void gg_framebuf_unbind(void) {
     GL(glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0));
     gg__reset_bound_fbo();
 }
-void gg_framebuf_blit(gg_framebuf_t *, v2 pos); // draws to current draw fbo
+
+// blit funcs draw to currently bound draw fbo
+void gg_framebuf_blit_scaled(gg_framebuf_t *fb, v2 pos, v2 size);
+static inline void gg_framebuf_blit(gg_framebuf_t *fb, v2 pos) {
+    gg_framebuf_blit_scaled(fb, pos, v2_(fb->tex->width, fb->tex->height));
+}
 
 // pass in an uninitialized (!!) texture to become an atlas
 void gg_atlas_generate(

@@ -83,12 +83,14 @@ void gg_framebuf_make(gg_framebuf_t *fb, gg_texture_t *tex) {
     GL(glBindFramebuffer(GL_READ_FRAMEBUFFER, 0));
 }
 
-void gg_framebuf_blit(gg_framebuf_t *fb, v2 pos) {
+void gg_framebuf_blit_scaled(gg_framebuf_t *fb, v2 pos, v2 size) {
+    v2 bottom_right = v2_add(pos, size);
+
     GL(glBindFramebuffer(GL_READ_FRAMEBUFFER, fb->handle));
     GL(glBlitFramebuffer(
         0.0, 0.0, fb->tex->width, fb->tex->height,
-        v2_EXPAND(pos), pos.x + fb->tex->width, pos.y + fb->tex->height,
-        GL_COLOR_BUFFER_BIT, GL_NEAREST
+        v2_EXPAND(pos), v2_EXPAND(bottom_right),
+        gg_buffer_bits, GL_NEAREST
     ));
     GL(glBindFramebuffer(GL_READ_FRAMEBUFFER, 0));
 }

@@ -12,15 +12,17 @@
 #include "../gglm.h"
 
 extern GLuint gg_bound_fbo;
-extern v2 gg_bound_fbo_size;
+extern v2 gg_resolution;
 extern v2 gg_window_size;
 extern SDL_Window *gg_window;
 extern SDL_GLContext *gg_gl_ctx;
+extern GLbitfield gg_buffer_bits;
 
 // init config uses ZII heavily, so options all have defaults if set to zero
 typedef struct gg_config {
     const char *window_name;
-    v2 window_size;
+    v2 window_size; // set initial window size
+    v2 resolution; // if set, window size can change but not resolution
 
     unsigned maximize: 1;
     unsigned disable_vsync: 1;
@@ -36,8 +38,7 @@ void gg__set_bound_fbo(GLuint fbo, v2 size);
 void gg__reset_bound_fbo(void);
 
 void gg_clear(uint8_t r, uint8_t g, uint8_t b, uint8_t a);
-
-static inline void gg_flip(void) { SDL_GL_SwapWindow(gg_window); }
+void gg_flip(void);
 
 // use instead of SDL_PollEvent or ggfx won't work correctly.
 bool gg_poll_event(SDL_Event *);
