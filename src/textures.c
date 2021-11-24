@@ -98,7 +98,7 @@ void gg_framebuf_blit_scaled(gg_framebuf_t *fb, v2 pos, v2 size) {
 // texture atlassing ===========================================================
 
 #ifndef GG_ATLAS_MAX_IMAGES
-#define GG_ATLAS_MAX_IMAGES 128
+#define GG_ATLAS_MAX_IMAGES 256
 #endif
 
 typedef struct gg_atlas_ctx {
@@ -271,16 +271,28 @@ void gg_atlas_generate(
         gg_texture_kill(&ctx.textures[i]);
 }
 
+// splits atexture by cell size (in pix)
 gg_atexture_t *gg_atexture_split(
-    gg_atexture_t *atex, size_t rows, size_t cols, bool row_major
+    gg_atexture_t *atex, v2 cell_size, bool row_major
 ) {
-    v2 split_cell = v2_div(v2_fill(1.0), v2_(rows, cols));
+    v2 grid_size = v2_div(atex->size, cell_size);
+
+    return gg_atexture_split_grid(atex, grid_size.x, grid_size.y, row_major);
+}
+
+// splits a single atexture into a grid of atextures
+gg_atexture_t *gg_atexture_split_grid(
+    gg_atexture_t *atex, size_t cols, size_t rows, bool row_major
+) {
+    v2 split_cell = v2_div(v2_fill(1.0), v2_(cols, rows));
     gg_atexture_t *arr = malloc(rows * cols * sizeof(*arr));
 
     for (size_t col = 0; col < cols; ++col) {
         for (size_t row = 0; row < rows; ++row) {
-            v2 split_pos = v2_mul(v2_(row, col), split_cell);
-            size_t index = row_major ? row + col * rows : col + row * cols;
+            v2 split_pos = v2_mul(v2_(col, row), split_cell);
+            size_t index = row_major
+                ? row + col * rows
+                : col + row * cols;
 
             arr[index] = (gg_atexture_t){
                 .pos = v2_add(atex->pos, v2_mul(split_pos, atex->size)),

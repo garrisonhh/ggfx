@@ -18,6 +18,9 @@ static GLenum GG_GL_SHADER_TYPES[] = {
 #undef X
 };
 
+/*
+ * TODO use a similar system for other important gg2d objects
+ */
 static gg_shader_t shaders[GG_MAX_SHADERS] = {0};
 static gg_program_t programs[GG_MAX_PROGRAMS] = {0};
 static size_t num_shaders = 0, num_programs = 0;

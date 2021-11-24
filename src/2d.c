@@ -107,4 +107,41 @@ void gg2d_draw(void) {
 
 // fonts =======================================================================
 
-// TODO
+#ifndef GG2D_TAB_WIDTH
+#define GG2D_TAB_WIDTH (4)
+#endif
+
+void gg2d_font_make(gg2d_font_t *font, gg_atexture_t *font_atex, v2 char_size) {
+    *font = (gg2d_font_t){
+        .char_size = char_size
+    };
+
+    font->atextures = gg_atexture_split(font_atex, font->char_size, false);
+}
+
+void gg2d_font_kill(gg2d_font_t *font) {
+    free(font->atextures);
+}
+
+void gg2d_write(gg2d_font_t *font, char *text, v2 pos) {
+    v2 cursor = v2_ZERO;
+
+    for (char *trav = text; *trav; ++trav) {
+        switch (*trav) {
+        case '\t':
+            cursor.x += GG2D_TAB_WIDTH * font->char_size.x;
+
+            break;
+        case '\n':
+            cursor.x = 0;
+            cursor.y += font->char_size.y;
+
+            break;
+        default:
+            gg2d_blit(&font->atextures[*trav], v2_add(pos, cursor));
+            cursor.x += font->char_size.x;
+
+            break;
+        }
+    }
+}
