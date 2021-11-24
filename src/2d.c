@@ -48,11 +48,9 @@ void gg2d_quit(void) {
 }
 
 void gg2d_blit(gg_atexture_t *atex, v2 pos) {
-    GG_ASSERT(
-        gg2d_batch_idx < GG2D_BATCH_SIZE,
-        "ran out of gg2d batch space, please draw() more frequently or #define "
-        "GG2D_BATCH_SIZE with a larger value.\n"
-    );
+    // TODO better way to handle this?
+    if (gg2d_batch_idx == GG2D_BATCH_SIZE)
+        gg2d_draw();
 
     gg2d_batch.src_pos[gg2d_batch_idx] = atex->rel_pos;
     gg2d_batch.src_size[gg2d_batch_idx] = atex->rel_size;
