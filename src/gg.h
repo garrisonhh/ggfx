@@ -29,8 +29,24 @@ typedef struct gg_config {
     unsigned enable_depth: 1;
 } gg_config_t;
 
+// location is encoded in number used
+typedef enum gg_coords {
+    GG_TOP_LEFT         = 0x00,
+    GG_TOP_MIDDLE       = 0x01,
+    GG_TOP_RIGHT        = 0x02,
+    GG_MIDDLE_RIGHT     = 0x12,
+    GG_BOTTOM_RIGHT     = 0x22,
+    GG_BOTTOM_MIDDLE    = 0x21,
+    GG_BOTTOM_LEFT      = 0x20,
+    GG_MIDDLE_LEFT      = 0x10,
+    GG_CENTER           = 0x11
+} gg_coord_e;
+
 void gg_init(gg_config_t);
 void gg_quit(void);
+
+// useful for placing things on screen relative to window pixel size
+v2 gg_coord(gg_coord_e);
 
 // framebuffer functionality is done through texture.*, this is for integration
 // with the global state
@@ -40,7 +56,7 @@ void gg__reset_bound_fbo(void);
 void gg_clear(uint8_t r, uint8_t g, uint8_t b, uint8_t a);
 void gg_flip(void);
 
-// use instead of SDL_PollEvent or ggfx won't work correctly.
+// use instead of SDL_PollEvent or ggfx won't work correctly
 bool gg_poll_event(SDL_Event *);
 
 #endif

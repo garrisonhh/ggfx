@@ -91,6 +91,29 @@ void gg_quit(void) {
     SDL_DestroyWindow(gg_window);
 }
 
+v2 gg_coord(gg_coord_e coord) {
+    v2 pos = v2_ZERO;
+
+    int vert = (coord >> 4) & 0xF;
+    int horiz = coord & 0xF;
+
+    if (vert) {
+        pos.y = gg_window_size.y;
+
+        if (vert == 0x1)
+            pos.y * 0.5;
+    }
+
+    if (horiz) {
+        pos.x = gg_window_size.x;
+
+        if (horiz == 0x1)
+            pos.x * 0.5;
+    }
+
+    return pos;
+}
+
 void gg__set_bound_fbo(GLuint fbo, v2 size) {
     gg_bound_fbo = fbo;
     gg_resolution = size;
