@@ -184,6 +184,22 @@ static void on_resize(void) {
     }
 }
 
+// if fbo is bound, returns mouse position relative to that fbo
+static v2 adjust_mouse_pos(v2 pos) {
+    // fbo size
+    v2 dst_size = gg_window_size;
+    v2 ratio = v2_div(dst_size, gg_resolution);
+
+    ratio = v2_divs(ratio, GG_MIN(ratio.x, ratio.y));
+    dst_size = v2_div(dst_size, ratio);
+    dst_size = v2_MAP(dst_size, floor);
+
+    // offset and scale pos
+    pos = v2_sub(pos, v2_muls(v2_sub(gg_window_size, dst_size), 0.5));
+
+    return v2_mul(v2_div(pos, dst_size), gg_resolution);
+}
+
 // this function dispatches internal event callbacks
 bool gg_poll_event(SDL_Event *event) {
     if (!SDL_PollEvent(event))
@@ -193,6 +209,15 @@ bool gg_poll_event(SDL_Event *event) {
     case SDL_WINDOWEVENT:
         if (event->window.event == SDL_WINDOWEVENT_SIZE_CHANGED)
             on_resize();
+
+        break;
+    case SDL_MOUSEBUTTONDOWN:;
+        if (gg_bound_fbo) {
+            v2 pos = adjust_mouse_pos(v2_(event->button.x, event->button.y));
+
+            event->button.x = pos.x;
+            event->button.y = pos.y;
+        }
 
         break;
     }

@@ -45,7 +45,7 @@ typedef enum gg_coords {
 void gg_init(gg_config_t);
 void gg_quit(void);
 
-// useful for placing things on screen relative to window pixel size
+// useful for placing things on screen relative to window locations
 v2 gg_coord(gg_coord_e);
 
 // framebuffer functionality is done through texture.*, this is for integration
