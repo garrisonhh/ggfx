@@ -3,6 +3,8 @@
 
 #include "../ggfx.h"
 
+const uint32_t GG_REQ_SDL_FLAGS = SDL_INIT_VIDEO | SDL_INIT_EVENTS;
+
 GLuint gg_bound_fbo = 0;
 v2 gg_window_size, gg_resolution;
 
@@ -13,26 +15,22 @@ static gg_framebuf_t gg_res_fb;
 
 SDL_Window *gg_window = NULL;
 SDL_GLContext *gg_gl_ctx = NULL;
-
 GLbitfield gg_buffer_bits = GL_COLOR_BUFFER_BIT;
 
-static void on_resize(void);
+static void gg_on_resize(void);
 
 // initialize and configure an SDL2 window and OpenGL context
 void gg_init(gg_config_t cfg) {
     /*
      * SDL2 config
      */
-    uint32_t subsystems = SDL_WasInit(SDL_INIT_EVERYTHING);
-
-    GG_ASSERT(
-        subsystems & SDL_INIT_VIDEO,
-        "SDL must be initialized before ggfx.\n"
-    );
+    // this is refcounted; if the user wants to init other subsystems tool SDL
+    // will see zero problem with that!
+    SDL_Init(GG_REQ_SDL_FLAGS);
 
     // create window
     GG_SDL(gg_window = SDL_CreateWindow(
-        cfg.window_name ? cfg.window_name : "ggfx app",
+        cfg.title ? cfg.title : "ggfx app",
         SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
         cfg.window_size.x ? (int)cfg.window_size.x : 640,
         cfg.window_size.y ? (int)cfg.window_size.y : 480,
@@ -80,7 +78,7 @@ void gg_init(gg_config_t cfg) {
         gg__reset_bound_fbo();
     }
 
-    on_resize();
+    gg_on_resize();
 }
 
 void gg_quit(void) {
@@ -89,6 +87,12 @@ void gg_quit(void) {
 
     SDL_GL_DeleteContext(gg_gl_ctx);
     SDL_DestroyWindow(gg_window);
+
+    SDL_QuitSubSystem(GG_REQ_SDL_FLAGS);
+
+    // if the user has initialized their own SDL stuff, they must call SDL_Quit
+    if (!SDL_WasInit(SDL_INIT_EVERYTHING))
+        SDL_Quit();
 }
 
 v2 gg_coord(gg_coord_e coord) {
@@ -129,7 +133,7 @@ void gg__reset_bound_fbo(void) {
 }
 
 void gg_clear(uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
-#define X(v) ((float)(v) / 255.0)
+#define X(field) ((float)(field) / 255.0)
     GL(glClearColor(X(r), X(g), X(b), X(a)));
 #undef X
     GL(glClear(gg_buffer_bits));
@@ -158,7 +162,7 @@ void gg_flip(void) {
             dst_pos.y += (gg_window_size.y - dst_size.y) / 2;
 
         // blit and flip
-        gg_clear(0x0, 0x0, 0x0, 0xFF);
+        gg_clear(0x00, 0x00, 0x00, 0xFF);
         gg_framebuf_blit_scaled(&gg_res_fb, dst_pos, dst_size);
 
         SDL_GL_SwapWindow(gg_window);
@@ -169,7 +173,7 @@ void gg_flip(void) {
     }
 }
 
-static void on_resize(void) {
+static void gg_on_resize(void) {
     int width, height;
 
     SDL_GetWindowSize(gg_window, &width, &height);
@@ -185,7 +189,7 @@ static void on_resize(void) {
 }
 
 // if fbo is bound, returns mouse position relative to that fbo
-static v2 adjust_mouse_pos(v2 pos) {
+static v2 gg_adjust_mouse_pos(v2 pos) {
     // fbo size
     v2 dst_size = gg_window_size;
     v2 ratio = v2_div(dst_size, gg_resolution);
@@ -208,12 +212,12 @@ bool gg_poll_event(SDL_Event *event) {
     switch (event->type) {
     case SDL_WINDOWEVENT:
         if (event->window.event == SDL_WINDOWEVENT_SIZE_CHANGED)
-            on_resize();
+            gg_on_resize();
 
         break;
     case SDL_MOUSEBUTTONDOWN:;
         if (gg_bound_fbo) {
-            v2 pos = adjust_mouse_pos(v2_(event->button.x, event->button.y));
+            v2 pos = gg_adjust_mouse_pos(v2_(event->button.x, event->button.y));
 
             event->button.x = pos.x;
             event->button.y = pos.y;

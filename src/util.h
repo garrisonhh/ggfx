@@ -2,6 +2,7 @@
 #define GG_UTIL_H
 
 #include <stdio.h>
+#include <stdint.h>
 
 /*
  * common macros
@@ -67,5 +68,27 @@ static inline void gg_strcpy(char *dst, const char *src) {
     while ((*dst++ = *src++))
         ;
 }
+
+#if 0
+/*
+ * data structures
+ */
+typedef struct gg_mapnode {
+    uint32_t hash;
+    void *data;
+} gg_mapnode_t;
+
+// a put-only map for database-ish stuff
+typedef struct gg_map {
+    gg_mapnode_t *nodes;
+    size_t size, cap;
+} gg_map_t;
+
+void gg_map_make(gg_map_t *);
+void gg_map_kill(gg_map_t *);
+
+void gg_map_put(gg_map_t *, char *key, void *data);
+void *gg_map_get(gg_map_t *, char *key);
+#endif
 
 #endif

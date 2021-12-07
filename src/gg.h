@@ -20,7 +20,7 @@ extern GLbitfield gg_buffer_bits;
 
 // init config uses ZII heavily, so options all have defaults if set to zero
 typedef struct gg_config {
-    const char *window_name;
+    const char *title;
     v2 window_size; // set initial window size
     v2 resolution; // if set, window size can change but not resolution
 
@@ -50,10 +50,11 @@ v2 gg_coord(gg_coord_e);
 
 // framebuffer functionality is done through texture.*, this is for integration
 // with the global state
+// (double underscore == don't touch externally!)
 void gg__set_bound_fbo(GLuint fbo, v2 size);
 void gg__reset_bound_fbo(void);
 
-void gg_clear(uint8_t r, uint8_t g, uint8_t b, uint8_t a);
+void gg_clear(uint8_t, uint8_t, uint8_t, uint8_t);
 void gg_flip(void);
 
 // use instead of SDL_PollEvent or ggfx won't work correctly

@@ -59,3 +59,71 @@ char *gg_load_file(const char *filename, size_t *out_len) {
 
     return str;
 }
+
+static uint32_t gg_hash(char *str) {
+    const uint32_t FNV_PRIME = 0x01000193a;
+    const uint32_t FNV_BASIS = 0x0811c9dc5;
+
+    uint32_t hash = FNV_BASIS;
+
+    while (*str)
+        hash = (hash ^ *str++) * FNV_PRIME;
+
+    return hash;
+}
+
+#if 0
+void gg_map_make(gg_map_t *map) {
+#ifndef GG_MAP_INIT_CAP
+#define GG_MAP_INIT_CAP 8
+#endif
+    map->cap = GG_MAP_INIT_CAP;
+    map->size = 0;
+    map->nodes = calloc(map->cap, sizeof(*map->nodes));
+}
+
+void gg_map_kill(gg_map_t *map) {
+    free(map->nodes);
+}
+
+static void gg_map_put_hash(gg_map_t *map, uint32_t hash, void *data) {
+    size_t idx = hash % map->cap;
+
+    while (map->nodes[idx].data && hash != map->nodes[idx].hash)
+        idx = (idx + 1) % map->cap;
+
+    map->nodes[idx].hash = hash;
+    map->nodes[idx].data = data;
+}
+
+static void gg_map_grow(gg_map_t *map) {
+    size_t old_cap = map->cap;
+    gg_mapnode_t *old_nodes = map->nodes;
+
+    map->cap *= 2;
+    map->nodes = calloc(map->cap, sizeof(*old_nodes));
+
+    for (size_t i = 0; i < old_cap; ++i)
+        if (old_nodes[i].data)
+            gg_map_put_hash(map, old_nodes[i].hash, old_nodes[i].data);
+
+    free(old_nodes);
+}
+
+void gg_map_put(gg_map_t *map, char *key, void *data) {
+    if (map->size + 1 >= map->cap / 2)
+        gg_map_grow(map);
+
+    gg_map_put_hash(map, gg_hash(key), data);
+}
+
+void *gg_map_get(gg_map_t *map, char *key) {
+    uint32_t hash = gg_hash(key);
+    size_t idx = hash % map->cap;
+
+    while (map->nodes[idx].data && hash != map->nodes[idx].hash)
+        idx = (idx + 1) % map->cap;
+
+    return map->nodes[idx].data;
+}
+#endif

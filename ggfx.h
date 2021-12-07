@@ -30,6 +30,7 @@ planned features:
 #include "src/textures.h"
 #include "src/2d.h"
 #include "src/util.h"
+#include "src/data.h"
 
 #ifdef GGFX_IMPL
 #include "src/gg.c"
@@ -37,6 +38,7 @@ planned features:
 #include "src/textures.c"
 #include "src/2d.c"
 #include "src/util.c"
+#include "src/data.c"
 #endif
 
 #endif
