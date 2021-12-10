@@ -11,7 +11,7 @@
 #include <SDL2/SDL.h>
 #include "../gglm.h"
 
-#include "../ggfx.h"
+#include "data.h"
 
 extern SDL_Window *gg_window;
 extern SDL_GLContext *gg_gl_ctx;
@@ -22,7 +22,7 @@ extern GLbitfield gg_buffer_bits;
 extern GLuint gg_bound_fbo;
 extern v2 gg_resolution;
 
-extern gg_pages_t gg_main_pool;
+extern gg_pages_t gg_pool;
 
 // init config uses ZII heavily, all options have defaults if set to zero
 typedef struct gg_config {

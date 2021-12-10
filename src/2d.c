@@ -47,15 +47,16 @@ void gg2d_quit(void) {
     ; // TODO
 }
 
-void gg2d_blit(gg_atexture_t *atex, v2 pos) {
-    // TODO better way to handle this?
+// blit at an absolute pixel position and size
+void gg2d_blit_scaled(gg_atexture_t *atex, v2 pos, v2 size) {
+    // TODO batch buffer abstraction
     if (gg2d_batch_idx >= GG2D_BATCH_SIZE)
         gg2d_draw();
 
     gg2d_batch.src_pos[gg2d_batch_idx] = atex->rel_pos;
     gg2d_batch.src_size[gg2d_batch_idx] = atex->rel_size;
     gg2d_batch.dst_pos[gg2d_batch_idx] = pos;
-    gg2d_batch.pix_size[gg2d_batch_idx] = atex->size;
+    gg2d_batch.pix_size[gg2d_batch_idx] = size;
 
     ++gg2d_batch_idx;
 }

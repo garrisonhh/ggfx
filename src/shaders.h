@@ -31,7 +31,7 @@ typedef struct gg_shader_cfg {
 typedef struct gg_program {
     char name[80];
 
-    gg_shader_t *shaders[GG_NUM_SHADER_TYPES];
+    gg_shader_t shaders[GG_NUM_SHADER_TYPES];
     size_t num_shaders;
 
     GLuint handle;

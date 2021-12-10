@@ -18,22 +18,7 @@ static GLenum GG_GL_SHADER_TYPES[] = {
 #undef X
 };
 
-/*
- * TODO use a similar system for other important gg2d objects?
- */
-static gg_shader_t shaders[GG_MAX_SHADERS] = {0};
-static gg_program_t programs[GG_MAX_PROGRAMS] = {0};
-static size_t num_shaders = 0, num_programs = 0;
-
-static gg_shader_t *load_shader(gg_shader_cfg_t *cfg) {
-    GG_ASSERT(
-        num_shaders < GG_MAX_SHADERS,
-        "ran out of shader space, #define GG_MAX_SHADERS with something "
-        "larger.\n"
-    );
-
-    gg_shader_t *shader = &shaders[num_shaders++];
-
+static void load_shader(gg_shader_t *shader, gg_shader_cfg_t *cfg) {
     // load source from file
     size_t len_source;
     char *source = gg_load_file(cfg->filename, &len_source);
@@ -52,7 +37,7 @@ static gg_shader_t *load_shader(gg_shader_cfg_t *cfg) {
 
     if (!success) {
         char err_buf[1024];
-        
+
         GL(glGetShaderInfoLog(shader->handle, sizeof(err_buf), NULL, err_buf));
 
         // TODO do some introspection on source string maybe?
@@ -64,8 +49,6 @@ static gg_shader_t *load_shader(gg_shader_cfg_t *cfg) {
     }
 
     free(source);
-
-    return shader;
 }
 
 static void check_program(gg_program_t *program, GLuint param) {
@@ -91,12 +74,6 @@ static void check_program(gg_program_t *program, GLuint param) {
 gg_program_t *gg_program_load(
     const char *name, gg_shader_cfg_t *configs, size_t num_shaders
 ) {
-    GG_ASSERT(
-        num_programs < GG_MAX_PROGRAMS,
-        "ran out of shader program space, #define GG_MAX_PROGRAMS with "
-        "something larger.\n"
-    );
-
 #ifdef DEBUG
     bool types[GG_NUM_SHADER_TYPES] = {0};
 
@@ -108,15 +85,17 @@ gg_program_t *gg_program_load(
     }
 #endif
 
-    gg_program_t *program = &programs[num_programs++];
+    gg_program_t *program = gg_pages_alloc(&gg_pool, sizeof(*program));
+
+    *program = (gg_program_t){0};
 
     gg_strcpy(program->name, name);
     GL(program->handle = glCreateProgram());
 
     for (size_t i = 0; i < num_shaders; ++i) {
-        gg_shader_t *shader = load_shader(&configs[i]);
+        gg_shader_t *shader = &program->shaders[program->num_shaders++];
 
-        program->shaders[program->num_shaders++] = shader;
+        load_shader(shader, &configs[i]);
         GL(glAttachShader(program->handle, shader->handle));
     }
 

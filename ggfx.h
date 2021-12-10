@@ -2,23 +2,21 @@
 #define GGFX_H
 
 /*
-
-ggfx is a header-only data-oriented minimal-cost abstraction over OpenGL 3.3
-and SDL2 made for making fun low-level graphics code easier without sacrificing
-on overhead.
-
-unlike many header-only libraries, ggfx does rely on some dependencies:
-- SDL2 linked so that #include <SDL2/SDL.h> works
-- libghh linked so that #include <libghh/ghh.h> works (and is IMPL'd)
-
-planned features:
-- minimal programmer memory management
-- shaders
-  - automatic batching
-- texture atlases
-  - automatic bin packing
-
-*/
+ * ggfx is a header-only data-oriented minimal-cost abstraction over OpenGL 3.3
+ * and SDL2 made for making fun low-level graphics code easier without adding
+ * significant overhead.
+ * 
+ * unlike many header-only libraries, ggfx does rely on some dependencies:
+ * - SDL2 linked so that #include <SDL2/SDL.h> works
+ * TODO use libghh?
+ * 
+ * planned features: TODO this is out of date
+ * - minimal programmer memory management
+ * - shaders
+ *   - automatic batching
+ * - texture atlases
+ *   - automatic bin packing
+ */
 
 #ifdef GGFX_IMPL
 #define GLAD_IMPL
