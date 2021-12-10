@@ -11,14 +11,20 @@
 #include <SDL2/SDL.h>
 #include "../gglm.h"
 
-extern GLuint gg_bound_fbo;
-extern v2 gg_resolution;
-extern v2 gg_window_size;
+#include "../ggfx.h"
+
 extern SDL_Window *gg_window;
 extern SDL_GLContext *gg_gl_ctx;
+
+extern v2 gg_window_size;
 extern GLbitfield gg_buffer_bits;
 
-// init config uses ZII heavily, so options all have defaults if set to zero
+extern GLuint gg_bound_fbo;
+extern v2 gg_resolution;
+
+extern gg_pages_t gg_main_pool;
+
+// init config uses ZII heavily, all options have defaults if set to zero
 typedef struct gg_config {
     const char *title;
     v2 window_size; // set initial window size

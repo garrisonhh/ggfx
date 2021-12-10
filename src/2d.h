@@ -1,8 +1,9 @@
 #ifndef GG_2D_H
 #define GG_2D_H
 
-#include "../ggfx.h"
 #include "../gglm.h"
+
+#include "../ggfx.h"
 
 // 2d interface ================================================================
 

@@ -31,7 +31,7 @@ void gg2d_init(
     };
 
     gg2d_program = gg_program_load(
-        "gg2d-blitter", shader_cfg, GG_ARR_SIZE(shader_cfg)
+        "gg2d-quad-blitter", shader_cfg, GG_ARR_SIZE(shader_cfg)
     );
     gg2d_loc_disp_size = gg_program_uniform(gg2d_program, "disp_size");
     gg2d_loc_atlas = gg_program_uniform(gg2d_program, "atlas");
@@ -49,7 +49,7 @@ void gg2d_quit(void) {
 
 void gg2d_blit(gg_atexture_t *atex, v2 pos) {
     // TODO better way to handle this?
-    if (gg2d_batch_idx == GG2D_BATCH_SIZE)
+    if (gg2d_batch_idx >= GG2D_BATCH_SIZE)
         gg2d_draw();
 
     gg2d_batch.src_pos[gg2d_batch_idx] = atex->rel_pos;

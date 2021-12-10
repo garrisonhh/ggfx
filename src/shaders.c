@@ -19,7 +19,7 @@ static GLenum GG_GL_SHADER_TYPES[] = {
 };
 
 /*
- * TODO use a similar system for other important gg2d objects
+ * TODO use a similar system for other important gg2d objects?
  */
 static gg_shader_t shaders[GG_MAX_SHADERS] = {0};
 static gg_program_t programs[GG_MAX_PROGRAMS] = {0};

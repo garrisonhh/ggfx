@@ -1,21 +1,29 @@
 #include <stdlib.h>
-#include <stdbool.h>
 
-#include "../ggfx.h"
+#include "gg.h"
 
 const uint32_t GG_REQ_SDL_FLAGS = SDL_INIT_VIDEO | SDL_INIT_EVENTS;
 
+// GL context
+SDL_Window *gg_window = NULL;
+SDL_GLContext *gg_gl_ctx = NULL;
+
+// internal display management
 GLuint gg_bound_fbo = 0;
 v2 gg_window_size, gg_resolution;
+GLbitfield gg_buffer_bits = GL_COLOR_BUFFER_BIT;
+
+// memory management
+#ifndef GG_MAIN_POOL_PAGE
+#define GG_MAIN_POOL_PAGE 65536
+#endif
+
+gg_pages_t gg_main_pool;
 
 // static resolution vars
 static bool gg_static_resolution = false;
 static gg_texture_t gg_res_tex;
 static gg_framebuf_t gg_res_fb;
-
-SDL_Window *gg_window = NULL;
-SDL_GLContext *gg_gl_ctx = NULL;
-GLbitfield gg_buffer_bits = GL_COLOR_BUFFER_BIT;
 
 static void gg_on_resize(void);
 
@@ -79,6 +87,11 @@ void gg_init(gg_config_t cfg) {
     }
 
     gg_on_resize();
+
+    /*
+     * meta config
+     */
+    gg_pages_make(&gg_main_pool, GG_MAIN_POOL_PAGE);
 }
 
 void gg_quit(void) {
