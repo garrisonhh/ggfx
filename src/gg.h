@@ -65,5 +65,6 @@ void gg_flip(void);
 
 // use instead of SDL_PollEvent or ggfx won't work correctly
 bool gg_poll_event(SDL_Event *);
+v2 gg_mouse_pos(void);
 
 #endif

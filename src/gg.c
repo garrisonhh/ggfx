@@ -219,6 +219,14 @@ static v2 gg_adjust_mouse_pos(v2 pos) {
     return v2_mul(v2_div(pos, dst_size), gg_resolution);
 }
 
+v2 gg_mouse_pos(void) {
+    int x, y;
+
+    SDL_GetMouseState(&x, &y);
+
+    return gg_adjust_mouse_pos(v2_(x, y));
+}
+
 // this function dispatches internal event callbacks
 bool gg_poll_event(SDL_Event *event) {
     if (!SDL_PollEvent(event))
