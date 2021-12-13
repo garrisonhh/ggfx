@@ -60,6 +60,7 @@ char *gg_load_file(const char *filename, size_t *out_len) {
     return str;
 }
 
+#if 0
 static uint32_t gg_hash(char *str) {
     const uint32_t FNV_PRIME = 0x01000193a;
     const uint32_t FNV_BASIS = 0x0811c9dc5;
@@ -72,7 +73,6 @@ static uint32_t gg_hash(char *str) {
     return hash;
 }
 
-#if 0
 void gg_map_make(gg_map_t *map) {
 #ifndef GG_MAP_INIT_CAP
 #define GG_MAP_INIT_CAP 8

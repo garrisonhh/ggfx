@@ -85,7 +85,7 @@ gg_program_t *gg_program_load(
     }
 #endif
 
-    gg_program_t *program = gg_pages_alloc(&gg_pool, sizeof(*program));
+    gg_program_t *program = mono_alloc(&gg_pool, sizeof(*program));
 
     *program = (gg_program_t){0};
 

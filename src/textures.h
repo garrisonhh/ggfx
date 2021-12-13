@@ -2,10 +2,8 @@
 #define GG_TEXTURES_H
 
 #include <stddef.h>
-#include "../gglm.h"
 
-#include "gg.h"
-#include "util.h"
+#include "../ggfx.h"
 
 typedef struct gg_texture {
     GLuint handle;
@@ -69,9 +67,5 @@ gg_atexture_t *gg_atexture_split(gg_atexture_t *, v2 cell_size, bool row_major);
 gg_atexture_t *gg_atexture_split_grid(
     gg_atexture_t *, size_t cols, size_t rows, bool row_major
 );
-
-/*
- * TODO abstractions for sprites, spritesheets, animations
- */
 
 #endif

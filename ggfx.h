@@ -7,8 +7,8 @@
  * significant overhead.
  * 
  * unlike many header-only libraries, ggfx does rely on some dependencies:
+ * - libghh is included as part of the library
  * - SDL2 linked so that #include <SDL2/SDL.h> works
- * TODO use libghh?
  * 
  * planned features: TODO this is out of date
  * - minimal programmer memory management
@@ -22,13 +22,19 @@
 #define GLAD_IMPL
 #endif
 
-#include "glad/glad.h"
+#ifndef GHH_IMPL
+#define GHH_IMPL
+#endif
+
+#include "lib/gglm/gglm.h"
+#include "lib/glad/glad.h"
+#include "lib/libghh/ghh.h"
+
+#include "src/util.h"
 #include "src/gg.h"
 #include "src/shaders.h"
 #include "src/textures.h"
 #include "src/2d.h"
-#include "src/util.h"
-#include "src/data.h"
 
 #ifdef GGFX_IMPL
 #include "src/gg.c"
@@ -36,7 +42,6 @@
 #include "src/textures.c"
 #include "src/2d.c"
 #include "src/util.c"
-#include "src/data.c"
 #endif
 
 #endif

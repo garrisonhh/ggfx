@@ -18,7 +18,7 @@ GLbitfield gg_buffer_bits = GL_COLOR_BUFFER_BIT;
 #define GG_MAIN_POOL_PAGE 65536
 #endif
 
-gg_pages_t gg_pool;
+mono_t gg_pool;
 
 // static resolution vars
 static bool gg_static_resolution = false;
@@ -91,14 +91,14 @@ void gg_init(gg_config_t cfg) {
     /*
      * meta config
      */
-    gg_pages_make(&gg_pool, GG_MAIN_POOL_PAGE);
+    mono_make(&gg_pool, GG_MAIN_POOL_PAGE);
 }
 
 void gg_quit(void) {
     gg_framebuf_kill(&gg_res_fb);
     gg_texture_kill(&gg_res_tex);
 
-    gg_pages_kill(&gg_pool);
+    mono_kill(&gg_pool);
 
     SDL_GL_DeleteContext(gg_gl_ctx);
     SDL_DestroyWindow(gg_window);

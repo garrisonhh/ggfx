@@ -27,7 +27,7 @@
 #ifdef DEBUG
 #define GG_ASSERT(cond, ...) if (!(cond)) GG_ERROR(__VA_ARGS__)
 #else
-#define GG_ASSERT(...)
+#define GG_ASSERT(cond, ...)
 #endif
 
 // OpenGL debug macro. wrap OpenGL function calls in GL() so that errors are
@@ -43,15 +43,11 @@ static inline void gg_check_error(const char *file, int line) {
     X(GL_INVALID_FRAMEBUFFER_OPERATION);
     X(GL_OUT_OF_MEMORY);
 #undef X
-    default:
-        return;
+    default: return;
     }
 }
 
-#define GL(line) do {\
-    line;\
-    gg_check_error(__FILE__, __LINE__);\
-} while(0)
+#define GL(line) do { line; gg_check_error(__FILE__, __LINE__); } while(0)
 #else
 #define GL(line) line
 #endif

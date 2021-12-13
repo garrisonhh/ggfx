@@ -4,7 +4,6 @@
 #include <stddef.h>
 
 #include "../ggfx.h"
-#include "util.h"
 
 #define GG_SHADER_TYPES() \
 	X(GG_SHADER_VERT, GL_VERTEX_SHADER)\

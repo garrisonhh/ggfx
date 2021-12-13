@@ -1,7 +1,7 @@
 #include <stdbool.h>
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_STATIC
-#include "../stb_image.h"
+#include "../lib/stb/stb_image.h"
 
 #include "../ggfx.h"
 
